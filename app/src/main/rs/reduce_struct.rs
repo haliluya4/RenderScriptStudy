@@ -1,5 +1,5 @@
 #pragma version(1)
-#pragma rs java_package_name(com.xjx.renderscriptstudy)
+#pragma rs java_package_name(com.xjx.renderscriptstudy.tasks)
 #pragma rs_fp_relaxed
 
 #define LONG_MAX (long)((1UL << 63) - 1) // long最大值，63个1
@@ -12,6 +12,13 @@
 typedef struct Input { // Input作为对外暴露的结构名
   long val;
 } Input_inner; // 自定义输入结构，带inner后缀作为内部使用结构名
+
+typedef struct Output {
+  long sum;
+} Output_inner; // 自定义输出结构，用于指针例子
+Output_inner *outputPoint;
+
+int* outputSum;
 
 typedef struct {
   long val;
@@ -62,4 +69,14 @@ static void fMMOutConverter(int4 *result,
   result->s1 = val->min.idy;
   result->s2 = val->max.idx;
   result->s3 = val->max.idy;
+
+  rsDebug("sum before", outputPoint[0].sum);
+  outputPoint[0].sum = val->min.val + val->max.val; // 写入内存，这样Java层无法读到结果？？？
+  *outputSum = val->min.val + val->max.val; // 写入内存，这样Java层能读到结果
+  rsDebug("sum after", outputPoint[0].sum);
+
+  int data[2];
+  data[0] = 4;
+  data[1] = 5; // 无论数组多大，只有0号元素能在上层收到？？？
+  rsSendToClientBlocking(6, data, 2);
 }
